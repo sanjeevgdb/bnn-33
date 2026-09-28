@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>BNN 33 Class Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+html{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+
+:root{
+  --bg:#F3F4F8; --surface:#FFFFFF; --surface-2:#E9EBF3; --ink:#1B2140; --muted:#5D6485; --line:#D9DCE8;
+  --accent:#B8621A; --accent-ink:#FFFFFF; --accent-soft:#F6E6D6;
+  --ok:#2F7D55; --ok-soft:#DDEFE5; --prog:#3F5BB8; --prog-soft:#E1E6F7;
+  --display:"Young Serif",Georgia,"Times New Roman",serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#11142A; --surface:#1A1E38; --surface-2:#242946; --ink:#E7E9F4; --muted:#A1A7C4; --line:#2F3556;
+    --accent:#E8964B; --accent-ink:#1A1206; --accent-soft:#3A2A1C;
+    --ok:#6FCB98; --ok-soft:#1D3A2C; --prog:#93A8F0; --prog-soft:#252F57;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#11142A; --surface:#1A1E38; --surface-2:#242946; --ink:#E7E9F4; --muted:#A1A7C4; --line:#2F3556;
+  --accent:#E8964B; --accent-ink:#1A1206; --accent-soft:#3A2A1C;
+  --ok:#6FCB98; --ok-soft:#1D3A2C; --prog:#93A8F0; --prog-soft:#252F57;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+header h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,6vw,34px);margin:0;letter-spacing:.2px;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.stats{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar{flex:1 1 200px;height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+.stats b{font-variant-numeric:tabular-nums}
+.stats span{color:var(--muted);font-size:13px}
+
+.resume{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 0 var(--line)}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.resume h2{margin:0;font-family:var(--display);font-weight:400;font-size:22px}
+.resume .meta{color:var(--muted);font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:10px;padding:11px 16px;font:600 15px var(--body);cursor:pointer;text-decoration:none;min-height:44px}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--surface-2);color:var(--ink)}
+.btn:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--prog);outline-offset:2px}
+.btn .tri{width:0;height:0;border-left:9px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent}
+.timebox{display:flex;align-items:center;gap:8px;background:var(--surface-2);border-radius:10px;padding:4px 4px 4px 12px}
+.timebox label{font-size:13px;color:var(--muted);white-space:nowrap}
+.timebox input{width:96px;font:500 15px var(--mono);border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface);color:var(--ink)}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.saved{font-size:13px;color:var(--ok);font-weight:600}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seg{display:flex;background:var(--surface-2);border-radius:10px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 13px var(--body);padding:8px 12px;border-radius:8px;cursor:pointer;min-height:36px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.search{flex:1 1 160px;font:15px var(--body);padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);min-height:40px}
+
+.group h3{font:700 12px var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:6px 0 8px}
+.list{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.item{display:grid;grid-template-columns:52px 1fr auto;gap:4px 12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item.current{background:var(--accent-soft)}
+.num{font:400 20px var(--display);text-align:center;color:var(--accent);font-variant-numeric:tabular-nums}
+.num small{display:block;font:700 10px var(--body);letter-spacing:.08em;color:var(--muted)}
+.info{min-width:0}
+.info .date{font-weight:600}
+.info .sub{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:3px;font-size:13px;color:var(--muted)}
+.chip{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--surface-2);color:var(--muted);font-variant-numeric:tabular-nums}
+.chip.prog{background:var(--prog-soft);color:var(--prog)}
+.chip.done{background:var(--ok-soft);color:var(--ok)}
+.acts{display:flex;gap:6px;align-items:center}
+.play{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:44px;height:40px;padding:0 12px;border-radius:10px;background:var(--accent);color:var(--accent-ink);text-decoration:none;font:600 13px var(--body)}
+.chk{width:40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:18px}
+.chk[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.edit{grid-column:2 / -1;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.edit input{width:92px;font:500 14px var(--mono);border:1px solid var(--line);border-radius:8px;padding:6px 8px;background:var(--surface);color:var(--ink)}
+.edit label{font-size:13px;color:var(--muted)}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+footer{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer button{align-self:flex-start;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font:13px var(--body);padding:0}
+@media (max-width:480px){
+  .item{grid-template-columns:40px 1fr auto;padding:12px 10px;gap:4px 10px}
+  .play .lbl{display:none}
+}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.player{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.player .frame{position:relative;width:100%;aspect-ratio:16/9;max-width:100%;background:#000}
+.player .frame > *{position:absolute;inset:0;width:100%;height:100%;border:0}
+.player .pbody{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.player .ptitle{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.player .ptitle b{font:400 19px var(--display)}
+.player .ptitle span{font:500 13px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.speeds{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.speeds span{font-size:13px;color:var(--muted);margin-right:2px}
+.speeds button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;font:600 13px var(--body);cursor:pointer;min-height:34px}
+.speeds button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.perr{background:var(--accent-soft);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px}
+.perr a{color:var(--accent);font-weight:600}
+.plinks{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}
+.plinks a,.plinks button{color:var(--muted);background:none;border:0;padding:0;font:13px var(--body);text-decoration:underline;cursor:pointer}
+button.play{border:0;cursor:pointer}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>BNN 33 Class Tracker</h1>
+    <p>All class recordings in order. Tap &#9654; and the class plays right here. Your place is saved automatically every few seconds, so next time it continues from where you stopped.</p>
+  </header>
+
+  <div class="stats" aria-live="polite">
+    <div class="bar" aria-hidden="true"><i id="barFill"></i></div>
+    <b id="statDone">0 of 74 finished</b>
+    <span id="statProg"></span>
+  </div>
+
+  <section class="player" id="playerBox" hidden aria-label="Video player">
+    <div class="frame"><div id="yt"></div></div>
+    <div class="pbody">
+      <div class="ptitle"><b id="pTitle"></b><span id="pTime"></span></div>
+      <div class="speeds" role="group" aria-label="Playback speed"><span>Speed</span>
+        <button type="button" data-rate="1">1&times;</button>
+        <button type="button" data-rate="1.25">1.25&times;</button>
+        <button type="button" data-rate="1.5">1.5&times;</button>
+        <button type="button" data-rate="1.75">1.75&times;</button>
+        <button type="button" data-rate="2">2&times;</button>
+      </div>
+      <div class="perr" id="pErr" hidden></div>
+      <div class="plinks"><a id="pYT" href="#" target="_blank" rel="noopener">Open on YouTube instead</a><button type="button" id="pClose">Close player</button></div>
+    </div>
+  </section>
+
+  <section class="resume" id="resume" aria-labelledby="resumeTitle"></section>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Show">
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      <button type="button" data-f="todo" aria-pressed="false">Not finished</button>
+      <button type="button" data-f="done" aria-pressed="false">Finished</button>
+    </div>
+    <input id="q" class="search" type="search" placeholder="Search day, date or topic" aria-label="Search classes">
+  </div>
+
+  <div id="groups"></div>
+
+  <footer>
+    <div id="storeNote"></div>
+    <div>Your progress is saved in this browser on this device only. To move it to another phone, copy it here and paste it on the other device.</div>
+    <div class="row">
+      <button type="button" id="copyBtn">Copy my progress</button>
+      <button type="button" id="pasteBtn">Paste progress from another device</button>
+    </div>
+    <div id="pasteBox" hidden>
+      <textarea id="pasteArea" rows="3" style="width:100%;font:12px var(--mono);border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface);color:var(--ink)" placeholder="Paste the copied progress here"></textarea>
+      <div class="row" style="margin-top:6px"><button type="button" class="btn ghost" id="pasteApply">Load progress</button><span id="pasteMsg" class="hint"></span></div>
+    </div>
+    <div id="copyMsg" class="hint"></div>
+  </footer>
+</div>
+
+<script>
+const CLASSES = [{"d": 1, "date": "Nov 2025", "dur": "23:41", "v": "5PSoBSr_ZYY", "g": "November 2025"}, {"d": 2, "date": "Nov 2025", "dur": "1:46:45", "v": "tEu8esXYf30", "g": "November 2025"}, {"d": 3, "date": "Nov 2025", "dur": "1:19:59", "v": "0CFq-yMaPaM", "g": "November 2025"}, {"d": 4, "date": "Dec 2025", "dur": "1:19:27", "v": "QoT_HQqS95U", "g": "December 2025"}, {"d": 5, "date": "Dec 2025", "dur": "1:55:50", "v": "Nq4HPhgJK6c", "g": "December 2025"}, {"d": 6, "date": "16 Dec 2025", "dur": "1:50:08", "v": "y8Ra1I-vf7k", "g": "December 2025"}, {"d": 7, "date": "24 Dec 2025", "dur": "1:07:52", "v": "IbOyT3ontoI", "g": "December 2025"}, {"d": 8, "date": "6 Jan 2026", "dur": "2:08:04", "v": "58Bs4AyYqaM", "g": "January 2026"}, {"d": 9, "date": "13 Jan 2026", "dur": "2:18:41", "v": "qxRNXFbbuk8", "g": "January 2026"}, {"d": 10, "date": "14 Jan 2026", "dur": "2:12:16", "v": "sB_NdLtzoSA", "g": "January 2026"}, {"d": 11, "date": "19 Jan 2026", "dur": "2:17:05", "v": "2VzmzM3_UX0", "g": "January 2026"}, {"d": 12, "date": "21 Jan 2026", "dur": "2:23:12", "v": "cTYuYwJVyD4", "g": "January 2026"}, {"d": 13, "date": "26 Jan 2026", "dur": "2:39:47", "v": "vURWr9CeYHY", "g": "January 2026"}, {"d": 14, "date": "28 Jan 2026 – Part 1", "dur": "1:17:52", "v": "SJVLO05zqng", "g": "January 2026"}, {"d": 15, "date": "28 Jan 2026 – Part 2", "dur": "1:04:52", "v": "AFsJHu0RfnY", "g": "January 2026"}, {"d": 16, "date": "2 Feb 2026", "dur": "2:25:02", "v": "S6Y5oP_kjlk", "g": "February 2026"}, {"d": 17, "date": "4 Feb 2026", "dur": "2:30:53", "v": "laR10glkbSo", "g": "February 2026"}, {"d": 18, "date": "9 Feb 2026", "dur": "2:17:27", "v": "z88ghpQ_DYc", "g": "February 2026"}, {"d": 19, "date": "16 Feb 2026", "dur": "2:31:42", "v": "s3DvwwNNMzU", "g": "February 2026"}, {"d": 20, "date": "18 Feb 2026", "dur": "3:04:54", "v": "KRLTHYBv1Ik", "g": "February 2026"}, {"d": 21, "date": "23 Feb 2026", "dur": "2:17:40", "v": "gl9_1gk6ZFI", "g": "February 2026"}, {"d": 22, "date": "25 Feb 2026", "dur": "2:01:55", "v": "EgpHu1wljmQ", "g": "February 2026"}, {"d": 23, "date": "2 Mar 2026", "dur": "1:15:45", "v": "0jR5w3LmHh8", "g": "March 2026"}, {"d": 24, "date": "4 Mar 2026", "dur": "2:23:00", "v": "j6Mc-ErAYEY", "g": "March 2026"}, {"d": 25, "date": "9 Mar 2026", "dur": "1:51:33", "v": "I6N5wXmTJ2I", "g": "March 2026"}, {"d": 26, "date": "11 Mar 2026", "dur": "2:08:50", "v": "ONg8bXDFM6k", "g": "March 2026"}, {"d": 27, "date": "16 Mar 2026", "dur": "1:53:00", "v": "PHJyYbJnZDo", "g": "March 2026"}, {"d": 28, "date": "18 Mar 2026", "dur": "2:13:14", "v": "Cskrp29IXdg", "g": "March 2026"}, {"d": 29, "date": "23 Mar 2026", "dur": "1:58:25", "v": "BMGy4N6kEzo", "g": "March 2026"}, {"d": 30, "date": "25 Mar 2026 (approx – shared 27 Mar)", "dur": "", "v": "ox_QLmEU2yM", "g": "March 2026"}, {"d": 31, "date": "26 Mar 2026 (approx – shared 28 Mar)", "dur": "", "v": "4S0HGqkcw4Y", "g": "March 2026"}, {"d": 32, "date": "28 Mar 2026", "dur": "", "v": "SYuvuETUA2Y", "g": "March 2026"}, {"d": 33, "date": "30 Mar 2026", "dur": "", "v": "yuC5j_M2qCI", "g": "March 2026"}, {"d": 34, "date": "1 Apr 2026", "dur": "", "v": "oQ0LHnpJ8Vc", "g": "April 2026"}, {"d": 35, "date": "shared 7 Apr 2026", "dur": "", "v": "x_-DZm3DQg0", "g": "April 2026"}, {"d": 36, "date": "shared 9 Apr 2026", "dur": "", "v": "dR_Kpvgox9c", "g": "April 2026"}, {"d": 37, "date": "shared 9 Apr 2026", "dur": "", "v": "u8dYvYRvOQE", "g": "April 2026"}, {"d": 38, "date": "12 Apr 2026", "dur": "", "v": "VBOjDne_Qks", "g": "April 2026"}, {"d": 39, "date": "14 Apr 2026", "dur": "", "v": "DOAstvCx-Q0", "g": "April 2026"}, {"d": 40, "date": "16 Apr 2026", "dur": "", "v": "_6y65rzQWZo", "g": "April 2026"}, {"d": 41, "date": "19 Apr 2026", "dur": "", "v": "kyoOA5p9lFE", "g": "April 2026"}, {"d": 42, "date": "21 Apr 2026", "dur": "", "v": "wR7V5XYBvFE", "g": "April 2026"}, {"d": 43, "date": "23 Apr 2026", "dur": "", "v": "gtn6LGD6WRE", "g": "April 2026"}, {"d": 44, "date": "26 Apr 2026", "dur": "", "v": "G6AYANERgJg", "g": "April 2026"}, {"d": 45, "date": "28 Apr 2026", "dur": "", "v": "OPxd_qbbCgM", "g": "April 2026"}, {"d": 46, "date": "30 Apr 2026", "dur": "", "v": "SXBh2_KmKsw", "g": "April 2026"}, {"d": 47, "date": "shared 30 Apr 2026", "dur": "", "v": "Fy0DQbokgB0", "g": "April 2026"}, {"d": 48, "date": "shared 2 May 2026", "dur": "", "v": "G2qZLRgQ4RA", "g": "May 2026"}, {"d": 49, "date": "shared 4 May 2026", "dur": "", "v": "oR0N6kcU-MQ", "g": "May 2026"}, {"d": 50, "date": "shared 7 May 2026 – BNN old batch", "dur": "", "v": "a1cA8aKLu9Y", "g": "May 2026"}, {"d": 51, "date": "shared 8 May 2026", "dur": "", "v": "G8xtwAjVpv4", "g": "May 2026"}, {"d": 52, "date": "shared 12 May 2026 – Profession", "dur": "", "v": "EVyh_fwONK0", "g": "May 2026"}, {"d": 53, "date": "shared 14 May 2026", "dur": "", "v": "LkyzuNqFPTs", "g": "May 2026"}, {"d": 54, "date": "shared 19 May 2026 – Progression Part 1", "dur": "", "v": "SuQpCv0hKlk", "g": "May 2026"}, {"d": 55, "date": "shared 22 May 2026 – Transit", "dur": "", "v": "4I5NwfLozmE", "g": "May 2026"}, {"d": 56, "date": "shared 26 May 2026 – Transit", "dur": "", "v": "nSNw3VWB3bM", "g": "May 2026"}, {"d": 57, "date": "shared 28 May 2026 – Wealth", "dur": "", "v": "TrH67pBewAk", "g": "May 2026"}, {"d": 58, "date": "shared 2 Jun 2026 – Foreign Settlement", "dur": "", "v": "CuXoX3uLBc4", "g": "June 2026"}, {"d": 59, "date": "shared 12 Jun 2026", "dur": "", "v": "_ctSMDEhhZk", "g": "June 2026"}, {"d": 60, "date": "shared 16 Jun 2026", "dur": "", "v": "4PqPXE-Ddhw", "g": "June 2026"}, {"d": 61, "date": "~15 Jun 2026 (shared 18 Jun)", "dur": "", "v": "hOfD_DbEr5Y", "g": "June 2026"}, {"d": 62, "date": "~17 Jun 2026 (shared 18 Jun)", "dur": "", "v": "kslzkj_L1co", "g": "June 2026"}, {"d": 63, "date": "shared 26 Jun 2026", "dur": "", "v": "g9nYGC2xSqg", "g": "June 2026"}, {"d": 64, "date": "1 Jul 2026 (shared 3 Jul)", "dur": "", "v": "XvzokWEwGzg", "g": "July 2026"}, {"d": 65, "date": "8 Jul 2026 (shared 11 Jul)", "dur": "", "v": "Ov1sweG53qQ", "g": "July 2026"}, {"d": 66, "date": "15 Jul 2026 (shared 16 Jul)", "dur": "", "v": "T5K2xmG_O7A", "g": "July 2026"}, {"d": 67, "date": "22 Jul 2026 (shared 23 Jul)", "dur": "", "v": "xLt2zmDWgRg", "g": "July 2026"}, {"d": 68, "date": "12 Aug 2026 (shared 13 Aug)", "dur": "", "v": "pp33gvEISwc", "g": "August 2026"}, {"d": 69, "date": "19 Aug 2026 (shared 20 Aug)", "dur": "", "v": "pew6-nVpMJw", "g": "August 2026"}, {"d": 70, "date": "26 Aug 2026 (shared 27 Aug)", "dur": "", "v": "8i8yIHvuSTM", "g": "August 2026"}, {"d": 71, "date": "2 Sep 2026 (shared 9 Sep)", "dur": "", "v": "2r_oDTtbzA8", "g": "September 2026"}, {"d": 72, "date": "9 Sep 2026 (shared 13 Sep)", "dur": "", "v": "sLojFKyH80Y", "g": "September 2026"}, {"d": 73, "date": "23 Sep 2026 (shared 24 Sep)", "dur": "", "v": "xEnMVi2kvHc", "g": "September 2026"}, {"d": 74, "date": "shared 28 Sep 2026", "dur": "", "v": "S3b4jJRaduA", "g": "September 2026"}, {"d": 0, "date": "1 Mar 2026 – Basic Vastu course demo", "dur": "", "v": "dQEnxNGa3xU", "g": "Demo classes & other videos"}, {"d": 0, "date": "1 Jun 2026 – Rashi demo class", "dur": "", "v": "T9HmrqU_D_E", "g": "Demo classes & other videos"}, {"d": 0, "date": "23 Jun 2026 – Demo class", "dur": "", "v": "vR6kTI_xFOg", "g": "Demo classes & other videos"}, {"d": 0, "date": "5 Mar 2026 (unlabelled)", "dur": "", "v": "l8jfkCvPhqE", "g": "Demo classes & other videos"}, {"d": 0, "date": "6 Mar 2026 (unlabelled)", "dur": "", "v": "ZOVT7fhbpio", "g": "Demo classes & other videos"}, {"d": 0, "date": "8 Mar 2026 (unlabelled)", "dur": "", "v": "fViOzkz584M", "g": "Demo classes & other videos"}, {"d": 0, "date": "23 Mar 2026 (unlabelled)", "dur": "", "v": "ulMRFN0P_FI", "g": "Demo classes & other videos"}, {"d": 0, "date": "27 Jun 2026 (podcast?)", "dur": "", "v": "IWqAKuCzEZo", "g": "Demo classes & other videos"}, {"d": 0, "date": "2 Aug 2026 (unlabelled)", "dur": "", "v": "83AsbdFrRlY", "g": "Demo classes & other videos"}, {"d": 0, "date": "4 Aug 2026 (unlabelled)", "dur": "", "v": "dL-jaUa7kP0", "g": "Demo classes & other videos"}, {"d": 0, "date": "13 Aug 2026 (unlabelled)", "dur": "", "v": "klWzfUhRrgo", "g": "Demo classes & other videos"}];
+const KEY = "bnn33-tracker-v1";
+let storeOK = true;
+let state = { p:{}, last:null, rate:1 };
+try { const raw = localStorage.getItem(KEY); if (raw) state = Object.assign(state, JSON.parse(raw)); } catch(e){ storeOK = false; }
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(state)); storeOK = true; } catch(e){ storeOK = false; }
+  document.getElementById("storeNote").textContent = storeOK ? "" :
+    "This browser is not letting the page save (private window?). Progress will be lost when you close it.";
+}
+const byId = Object.fromEntries(CLASSES.map((c,i)=>[c.v,{...c,i}]));
+const P = v => state.p[v] || (state.p[v] = { t:0, done:false });
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[ch]));
+
+function parseTime(s){
+  s = String(s||"").trim().replace(/[.,]/g,":");
+  if (!s) return 0;
+  if (!/^\d{1,3}(:\d{1,2}){0,2}$/.test(s)) return null;
+  const n = s.split(":").map(Number);
+  return n.length===1 ? n[0]*60 : n.length===2 ? n[0]*60+n[1] : n[0]*3600+n[1]*60+n[2];
+}
+function fmt(t){
+  t = Math.max(0, Math.round(t||0));
+  const h = Math.floor(t/3600), m = Math.floor(t%3600/60), s = t%60;
+  return h ? `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}` : `${m}:${String(s).padStart(2,"0")}`;
+}
+const startAt = v => P(v).done ? 0 : Math.max(0, Math.floor((P(v).t||0) - 5));
+const ytUrl = v => `https://www.youtube.com/watch?v=${v}` + (startAt(v) ? `&t=${startAt(v)}s` : "");
+const label = c => c.d ? `Day ${c.d}` : "Extra";
+
+/* ---------- YouTube player ---------- */
+let player = null, current = null, apiState = "idle", pending = null, apiTimer = null;
+function loadApi(){
+  if (apiState !== "idle") return;
+  apiState = "loading";
+  const s = document.createElement("script");
+  s.src = "https://www.youtube.com/iframe_api";
+  s.onerror = () => apiFailed();
+  document.head.appendChild(s);
+  apiTimer = setTimeout(()=>{ if (apiState==="loading") apiFailed(); }, 12000);
+}
+window.onYouTubeIframeAPIReady = function(){
+  clearTimeout(apiTimer); apiState = "ready";
+  if (pending){ const v = pending; pending = null; createPlayer(v); }
+};
+function apiFailed(){
+  apiState = "failed";
+  showErr(`The video player could not load here. <a href="${ytUrl(current)}" target="_blank" rel="noopener">Watch on YouTube from ${fmt(startAt(current))}</a>, then type where you stopped in the box below.`);
+}
+function showErr(html){ const e = document.getElementById("pErr"); e.innerHTML = html; e.hidden = !html; }
+
+function play(v){
+  if (current && current !== v) grab();
+  current = v; state.last = v; save();
+  const c = byId[v];
+  document.getElementById("playerBox").hidden = false;
+  document.getElementById("pTitle").textContent = `${label(c)} · ${c.date}`;
+  document.getElementById("pTime").textContent = P(v).t ? `from ${fmt(P(v).t)}` : "";
+  document.getElementById("pYT").href = ytUrl(v);
+  showErr("");
+  markRate();
+  if (!/^https?:$/.test(location.protocol)){
+    showErr(`This page is opened as a file on your phone, so YouTube will not play the video inside it. Open the page from its website link (your GitHub Pages link) and the player will work. <a href="${ytUrl(v)}" target="_blank" rel="noopener">Watch on YouTube instead</a>.`);
+  } else if (apiState === "ready"){
+    if (player && player.loadVideoById) player.loadVideoById({ videoId:v, startSeconds:startAt(v) });
+    else createPlayer(v);
+  } else if (apiState === "failed"){ apiFailed(); }
+  else { pending = v; loadApi(); }
+  render();
+  document.getElementById("playerBox").scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start" });
+}
+function createPlayer(v){
+  player = new YT.Player("yt", {
+    videoId: v,
+    playerVars: { origin: location.origin, start: startAt(v), autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1 },
+    events: {
+      onReady: e => { try { e.target.setPlaybackRate(state.rate||1); e.target.playVideo(); } catch(_){} },
+      onStateChange: e => {
+        if (e.data === 1) { try { player.setPlaybackRate(state.rate||1); } catch(_){} }
+        if (e.data === 2) { grab(); render(); }                 // paused
+        if (e.data === 0) { P(current).done = true; P(current).t = 0; save(); render(); } // ended
+      },
+      onError: e => {
+        const why = e.data===153 ? "YouTube could not tell which website is showing the video. Open this page from its website link, not as a file." : (e.data===101||e.data===150) ? "The owner of this video doesn't allow it to play on other websites." : "This video could not be played here.";
+        showErr(`${why} <a href="${ytUrl(current)}" target="_blank" rel="noopener">Watch on YouTube from ${fmt(startAt(current))}</a>, then type where you stopped in the box below.`);
+      }
+    }
+  });
+}
+function grab(){
+  if (!player || !current || typeof player.getCurrentTime !== "function") return;
+  let t, d;
+  try { t = player.getCurrentTime(); d = player.getDuration(); } catch(_) { return; }
+  if (!(t > 0)) return;
+  const pr = P(current);
+  if (d && t >= d - 90) { pr.done = true; pr.t = 0; }        // last 90 seconds counts as finished
+  else if (!pr.done || t > 30) { pr.t = Math.floor(t); if (t > 30) pr.done = false; }
+  save();
+  document.getElementById("pTime").textContent = `${fmt(t)}${d ? " / " + fmt(d) : ""}`;
+  const chip = document.querySelector(`[data-chip="${current}"]`);
+  if (chip) chip.outerHTML = chipHtml(current);
+  renderStats();
+}
+setInterval(()=>{ try { if (player && player.getPlayerState && player.getPlayerState() === 1) grab(); } catch(_){} }, 5000);
+document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState === "hidden") grab(); });
+window.addEventListener("pagehide", grab);
+
+function markRate(){ document.querySelectorAll("[data-rate]").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.rate)===(state.rate||1))); }
+
+/* ---------- page ---------- */
+function suggestion(){
+  const list = CLASSES.filter(c=>c.d);
+  if (state.last && byId[state.last]) {
+    const c = byId[state.last];
+    if (!P(c.v).done) return { c, kind:"continue" };
+    const next = list.find(x => x.d > (c.d||0) && !P(x.v).done) || list.find(x=>!P(x.v).done);
+    return next ? { c:byId[next.v], kind:"next" } : null;
+  }
+  const first = list.find(x=>!P(x.v).done);
+  return first ? { c:byId[first.v], kind:"start" } : null;
+}
+function renderResume(){
+  const el = document.getElementById("resume");
+  const s = suggestion();
+  if (!s){ el.innerHTML = `<div class="eyebrow">All done</div><h2 id="resumeTitle">You have finished every class</h2>`; return; }
+  const c = s.c, pr = P(c.v);
+  const eyebrow = s.kind==="continue" ? "Continue watching" : s.kind==="next" ? "Up next" : "Start here";
+  const btnText = pr.t && !pr.done ? `Resume from ${fmt(pr.t)}` : "Play from start";
+  el.innerHTML = `
+    <div class="eyebrow">${eyebrow}</div>
+    <div><h2 id="resumeTitle">${label(c)}</h2><div class="meta">${esc(c.date)}${c.dur ? " &middot; " + c.dur + " long" : ""}</div></div>
+    <div class="row">
+      <button type="button" class="btn primary" data-play="${c.v}"><span class="tri"></span>${btnText}</button>
+      <div class="timebox"><label for="resumeTime">Stopped at</label>
+        <input id="resumeTime" inputmode="numeric" placeholder="1:12:30" value="${pr.t ? fmt(pr.t) : ""}" data-time="${c.v}" aria-describedby="resumeHint"></div>
+      <button type="button" class="btn ghost" data-done="${c.v}">Mark finished</button>
+    </div>
+    <p class="hint" id="resumeHint">Saved automatically while the video plays here. If you watched on the YouTube app instead, type the time you stopped at. <span class="saved" id="resumeSaved"></span></p>`;
+}
+function chipHtml(v){
+  const pr = P(v);
+  return pr.done ? `<span class="chip done" data-chip="${v}">Finished</span>`
+       : pr.t ? `<span class="chip prog" data-chip="${v}">Stopped at ${fmt(pr.t)}</span>`
+       : `<span class="chip" data-chip="${v}">Not started</span>`;
+}
+let filter = "all", query = "";
+function renderList(){
+  const groups = {}, q = query.toLowerCase();
+  CLASSES.forEach(c=>{
+    const pr = P(c.v);
+    if (filter==="todo" && pr.done) return;
+    if (filter==="done" && !pr.done) return;
+    if (q && !(`${label(c)} ${c.date} ${c.g}`.toLowerCase().includes(q))) return;
+    (groups[c.g] = groups[c.g] || []).push(c);
+  });
+  const host = document.getElementById("groups"), names = Object.keys(groups);
+  if (!names.length){ host.innerHTML = `<div class="list"><div class="empty">No classes match.</div></div>`; return; }
+  host.innerHTML = names.map(g => `
+    <section class="group"><h3>${esc(g)}</h3><div class="list">
+      ${groups[g].map(c => { const pr = P(c.v), cur = state.last===c.v;
+        return `<div class="item${cur?" current":""}">
+          <div class="num">${c.d ? `<small>DAY</small>${c.d}` : `<small>EXTRA</small>&middot;`}</div>
+          <div class="info"><div class="date">${esc(c.date)}</div><div class="sub">${c.dur ? `<span>${c.dur}</span>` : ""}${chipHtml(c.v)}</div></div>
+          <div class="acts">
+            <button type="button" class="play" data-play="${c.v}" aria-label="Play ${label(c)}"><span class="tri"></span><span class="lbl">${pr.t && !pr.done ? "Resume" : "Play"}</span></button>
+            <button type="button" class="chk" data-done="${c.v}" aria-pressed="${pr.done}" aria-label="${pr.done ? "Mark not finished" : "Mark finished"}">&#10003;</button>
+          </div></div>`; }).join("")}
+    </div></section>`).join("");
+}
+function renderStats(){
+  const main = CLASSES.filter(c=>c.d);
+  const done = main.filter(c=>P(c.v).done).length, prog = main.filter(c=>!P(c.v).done && P(c.v).t).length;
+  document.getElementById("barFill").style.width = (done/main.length*100)+"%";
+  document.getElementById("statDone").textContent = `${done} of ${main.length} finished`;
+  document.getElementById("statProg").textContent = prog ? `${prog} in progress` : "";
+}
+function render(){ renderResume(); renderList(); renderStats(); }
+
+document.addEventListener("click", e=>{
+  const pl = e.target.closest("[data-play]"); if (pl){ play(pl.dataset.play); return; }
+  const r = e.target.closest("[data-rate]");
+  if (r){ state.rate = Number(r.dataset.rate); save(); markRate(); try { player && player.setPlaybackRate(state.rate); } catch(_){} return; }
+  const d = e.target.closest("[data-done]");
+  if (d){ const pr = P(d.dataset.done); pr.done = !pr.done; if (pr.done) pr.t = 0; state.last = d.dataset.done; save(); render(); return; }
+  const f = e.target.closest("[data-f]");
+  if (f){ filter = f.dataset.f; document.querySelectorAll("[data-f]").forEach(b=>b.setAttribute("aria-pressed", b===f)); renderList(); }
+});
+document.getElementById("pYT").addEventListener("click", ()=>{ grab(); try { player && player.pauseVideo(); } catch(_){} });
+document.getElementById("pClose").addEventListener("click", ()=>{ grab(); try { player && player.pauseVideo(); } catch(_){} document.getElementById("playerBox").hidden = true; render(); });
+function commitTime(inp){
+  const t = parseTime(inp.value), msg = document.getElementById("resumeSaved");
+  if (t===null){ if (msg){ msg.style.color="var(--accent)"; msg.textContent = "Use a time like 1:12:30 or 45:10"; } return; }
+  const pr = P(inp.dataset.time); if (pr.t === t) return;
+  pr.t = t; pr.done = false; state.last = inp.dataset.time; save(); render();
+  const again = document.getElementById("resumeSaved"); if (again){ again.style.color=""; again.textContent = "Saved ✓"; }
+}
+document.addEventListener("change", e=>{ if (e.target.matches("[data-time]")) commitTime(e.target); });
+document.addEventListener("keydown", e=>{ if (e.key==="Enter" && e.target.matches("[data-time]")) { e.preventDefault(); commitTime(e.target); } });
+document.getElementById("q").addEventListener("input", e=>{ query = e.target.value; renderList(); });
+
+document.getElementById("copyBtn").onclick = async ()=>{
+  grab();
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(state)))), msg = document.getElementById("copyMsg");
+  try { await navigator.clipboard.writeText(code); msg.textContent = "Copied. Send it to yourself on WhatsApp and paste it on the other device."; }
+  catch(e){ document.getElementById("pasteBox").hidden=false; const a=document.getElementById("pasteArea"); a.value=code; a.select(); msg.textContent = "Copy the selected text above."; }
+};
+document.getElementById("pasteBtn").onclick = ()=>{ document.getElementById("pasteBox").hidden=false; document.getElementById("pasteArea").focus(); };
+document.getElementById("pasteApply").onclick = ()=>{
+  const m = document.getElementById("pasteMsg");
+  try { const s = JSON.parse(decodeURIComponent(escape(atob(document.getElementById("pasteArea").value.trim()))));
+    if (!s || typeof s.p!=="object") throw 0; state = { p:s.p, last:s.last||null, rate:s.rate||1 }; save(); render(); m.textContent="Progress loaded."; }
+  catch(e){ m.textContent = "That text doesn't look like copied progress. Copy it again and paste the whole thing."; }
+};
+save(); render();
+</script>
+
+</body>
+</html>
