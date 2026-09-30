@@ -137,6 +137,7 @@ button.play{border:0;cursor:pointer}
         <button type="button" data-rate="1.75">1.75&times;</button>
         <button type="button" data-rate="2">2&times;</button>
       </div>
+      <div class="hint" id="pStatus" hidden aria-live="polite"></div>
       <div class="perr" id="pErr" hidden></div>
       <div class="plinks"><a id="pYT" href="#" target="_blank" rel="noopener">Open on YouTube instead</a><button type="button" id="pClose">Close player</button></div>
     </div>
@@ -249,7 +250,9 @@ function createPlayer(v){
     events: {
       onReady: e => { try { e.target.setPlaybackRate(state.rate||1); e.target.playVideo(); } catch(_){} },
       onStateChange: e => {
-        if (e.data === 1) { try { player.setPlaybackRate(state.rate||1); } catch(_){} }
+        if (e.data === 1) { try { player.setPlaybackRate(state.rate||1); } catch(_){} keepAwake(true); setStatus(""); }
+        if (e.data === 2 || e.data === 0) keepAwake(false);
+        if (e.data === 2) { let t=0; try { t = player.getCurrentTime(); } catch(_){} setStatus("Paused at " + fmt(t) + ". Tap play on the video to continue."); }
         if (e.data === 2) { grab(); render(); }                 // paused
         if (e.data === 0) { P(current).done = true; P(current).t = 0; save(); render(); } // ended
       },
@@ -260,6 +263,37 @@ function createPlayer(v){
     }
   });
 }
+
+/* keep the screen on while a class is playing */
+let wakeLock = null;
+async function keepAwake(on){
+  try {
+    if (on && !wakeLock && "wakeLock" in navigator && document.visibilityState === "visible") {
+      wakeLock = await navigator.wakeLock.request("screen");
+      wakeLock.addEventListener("release", ()=>{ wakeLock = null; });
+    } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch(_) { wakeLock = null; }
+}
+/* if the video gets stuck loading, reload it from the same spot */
+let stuckSince = 0, lastGood = 0;
+setInterval(()=>{
+  try {
+    if (!player || !player.getPlayerState || !current) return;
+    const st = player.getPlayerState();
+    if (st === 1) { stuckSince = 0; lastGood = player.getCurrentTime(); return; }
+    if (st === 3) {
+      if (!stuckSince) stuckSince = Date.now();
+      else if (Date.now() - stuckSince > 15000) {
+        stuckSince = 0;
+        const at = Math.max(0, Math.floor((player.getCurrentTime() || lastGood || P(current).t || 0) - 3));
+        player.loadVideoById({ videoId: current, startSeconds: at });
+        setStatus("The video got stuck loading, so it was restarted from " + fmt(at) + ".");
+      }
+    } else stuckSince = 0;
+  } catch(_){}
+}, 3000);
+function setStatus(txt){ const el = document.getElementById("pStatus"); if (el){ el.textContent = txt; el.hidden = !txt; } }
+
 function grab(){
   if (!player || !current || typeof player.getCurrentTime !== "function") return;
   let t, d;
@@ -275,7 +309,7 @@ function grab(){
   renderStats();
 }
 setInterval(()=>{ try { if (player && player.getPlayerState && player.getPlayerState() === 1) grab(); } catch(_){} }, 5000);
-document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState === "hidden") grab(); });
+document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState === "hidden") grab(); else { try { if (player && player.getPlayerState && player.getPlayerState() === 1) keepAwake(true); } catch(_){} } });
 window.addEventListener("pagehide", grab);
 
 function markRate(){ document.querySelectorAll("[data-rate]").forEach(b=>b.setAttribute("aria-pressed", Number(b.dataset.rate)===(state.rate||1))); }
@@ -359,7 +393,7 @@ document.addEventListener("click", e=>{
   if (f){ filter = f.dataset.f; document.querySelectorAll("[data-f]").forEach(b=>b.setAttribute("aria-pressed", b===f)); renderList(); }
 });
 document.getElementById("pYT").addEventListener("click", ()=>{ grab(); try { player && player.pauseVideo(); } catch(_){} });
-document.getElementById("pClose").addEventListener("click", ()=>{ grab(); try { player && player.pauseVideo(); } catch(_){} document.getElementById("playerBox").hidden = true; render(); });
+document.getElementById("pClose").addEventListener("click", ()=>{ grab(); try { player && player.pauseVideo(); } catch(_){} document.getElementById("playerBox").hidden = true; keepAwake(false); render(); });
 function commitTime(inp){
   const t = parseTime(inp.value), msg = document.getElementById("resumeSaved");
   if (t===null){ if (msg){ msg.style.color="var(--accent)"; msg.textContent = "Use a time like 1:12:30 or 45:10"; } return; }
