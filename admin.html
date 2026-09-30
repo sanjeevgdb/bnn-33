@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>BNN 33 Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+:root{
+  color-scheme:light;
+  --bg:#F3F4F8; --surface:#FFFFFF; --surface-2:#E9EBF3; --ink:#1B2140; --muted:#5D6485; --line:#D9DCE8;
+  --accent:#B8621A; --accent-ink:#FFFFFF; --accent-soft:#F6E6D6;
+  --ok:#2F7D55; --ok-soft:#DDEFE5; --bad:#B3261E; --bad-soft:#F8DEDC;
+  --display:"Young Serif",Georgia,"Times New Roman",serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#11142A; --surface:#1A1E38; --surface-2:#242946; --ink:#E7E9F4; --muted:#A1A7C4; --line:#2F3556;
+    --accent:#E8964B; --accent-ink:#1A1206; --accent-soft:#3A2A1C;
+    --ok:#6FCB98; --ok-soft:#1D3A2C; --bad:#F2A09A; --bad-soft:#40211F;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#11142A; --surface:#1A1E38; --surface-2:#242946; --ink:#E7E9F4; --muted:#A1A7C4; --line:#2F3556;
+  --accent:#E8964B; --accent-ink:#1A1206; --accent-soft:#3A2A1C;
+  --ok:#6FCB98; --ok-soft:#1D3A2C; --bad:#F2A09A; --bad-soft:#40211F;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 56px;display:flex;flex-direction:column;gap:18px}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,6vw,32px);margin:0;text-wrap:balance}
+header p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.card h2{margin:0;font:400 20px var(--display)}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+label{font-size:13px;font-weight:600;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+input,select,textarea{font:15px var(--body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:42px;width:100%}
+textarea{font:13px/1.5 var(--mono);min-height:120px;resize:vertical}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:10px;padding:11px 16px;font:600 15px var(--body);cursor:pointer;min-height:44px;text-decoration:none}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:var(--surface-2);color:var(--ink)}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.msg{border-radius:10px;padding:10px 12px;font-size:14px}
+.msg.ok{background:var(--ok-soft);color:var(--ok)}
+.msg.bad{background:var(--bad-soft);color:var(--bad)}
+.msg.info{background:var(--surface-2);color:var(--ink)}
+.msg a{color:inherit;font-weight:700}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.hint code{font:12px var(--mono);background:var(--surface-2);padding:1px 5px;border-radius:5px}
+details summary{cursor:pointer;font-weight:600;font-size:14px}
+details ol{margin:8px 0 0;padding-left:20px;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.found{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.f{display:grid;grid-template-columns:28px 1fr;gap:8px 10px;padding:12px;border-top:1px solid var(--line);align-items:start}
+.f:first-child{border-top:0}
+.f.dup{background:var(--surface-2)}
+.f input[type=checkbox]{width:22px;height:22px;min-height:0;margin-top:2px;accent-color:var(--accent)}
+.f .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.f .top{grid-column:2;display:flex;gap:8px;flex-wrap:wrap;align-items:baseline;font-size:14px}
+.f .top b{font-family:var(--display);font-weight:400;font-size:17px}
+.f .top a{font:12px var(--mono);color:var(--muted)}
+.tag{font-size:12px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--bad-soft);color:var(--bad)}
+.f .fields{grid-column:2}
+.list{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.li{display:grid;grid-template-columns:56px 1fr auto;gap:10px;align-items:center;padding:10px 12px;border-top:1px solid var(--line)}
+.li:first-child{border-top:0}
+.li .n{font:400 17px var(--display);color:var(--accent);text-align:center;font-variant-numeric:tabular-nums}
+.li .n small{display:block;font:700 10px var(--body);letter-spacing:.08em;color:var(--muted)}
+.li .t{min-width:0;font-size:14px}
+.li .t div:last-child{font:12px var(--mono);color:var(--muted);overflow-wrap:anywhere}
+.li button{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:8px;padding:6px 10px;font:600 13px var(--body);cursor:pointer;min-height:36px}
+.li button.arm{background:var(--bad);border-color:var(--bad);color:#fff}
+.status{font:500 13px var(--mono);color:var(--muted)}
+.banner{display:flex;gap:12px;align-items:flex-start;border-radius:14px;padding:16px;background:var(--ok-soft);color:var(--ok);border:1px solid var(--ok)}
+.banner .tick{flex:none;width:36px;height:36px;border-radius:50%;background:var(--ok);color:var(--surface);display:grid;place-items:center;font-size:20px;font-weight:700}
+.banner h3{margin:0 0 4px;font:400 20px var(--display);color:var(--ink)}
+.banner p{margin:0;color:var(--ink);font-size:14px}
+.banner .live{margin-top:6px;font-weight:700;color:var(--ok)}
+.banner a{color:var(--ok);font-weight:700}
+@media (max-width:480px){ .li{grid-template-columns:44px 1fr auto;padding:10px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>BNN 33 Admin</h1>
+    <p>Add new class recordings to the tracker site. Paste a YouTube link, check the date, and tap Publish. The site updates about a minute later.</p>
+  </header>
+
+  <!-- 1. GitHub connection -->
+  <section class="card" id="connectCard">
+    <div class="eyebrow">Step 1 · one-time setup</div>
+    <h2>Connect to your GitHub site</h2>
+    <div class="grid">
+      <label for="owner">GitHub username<input id="owner" autocomplete="off" value="sanjeevgdb"></label>
+      <label for="repo">Repository<input id="repo" autocomplete="off" value="bnn-33"></label>
+      <label for="branch">Branch<input id="branch" autocomplete="off" value="main"></label>
+    </div>
+    <label for="token">Access token<input id="token" type="password" autocomplete="off" placeholder="github_pat_…"></label>
+    <details>
+      <summary>How do I get an access token?</summary>
+      <ol>
+        <li>On github.com, open your profile picture → <b>Settings</b> → <b>Developer settings</b> → <b>Personal access tokens</b> → <b>Fine-grained tokens</b>.</li>
+        <li>Tap <b>Generate new token</b>. Name it <code>bnn33 admin</code> and set Expiration to 1 year.</li>
+        <li>Under <b>Repository access</b>, choose <b>Only select repositories</b> and pick <b>bnn-33</b>.</li>
+        <li>Under <b>Permissions → Repository permissions</b>, set <b>Contents</b> to <b>Read and write</b>.</li>
+        <li>Tap <b>Generate token</b>, copy it (it starts with <code>github_pat_</code>) and paste it above.</li>
+      </ol>
+    </details>
+    <p class="hint">The token is saved only in this browser on this phone. Never share it. It can change only the bnn-33 repository.</p>
+    <div class="row">
+      <button type="button" class="btn primary" id="connectBtn">Save and connect</button>
+      <button type="button" class="btn ghost" id="forgetBtn">Remove token from this phone</button>
+    </div>
+    <div id="connectMsg" class="msg" hidden></div>
+  </section>
+
+  <!-- 2. Add classes -->
+  <section class="card" id="addCard">
+    <div class="eyebrow">Step 2</div>
+    <h2>Add new classes</h2>
+    <label for="paste">Paste YouTube links, or messages copied from the WhatsApp group
+      <textarea id="paste" placeholder="https://youtu.be/xEnMVi2kvHc&#10;&#10;or copied WhatsApp messages like:&#10;[30/09/26, 3:15 pm] Astro Parveen Saini: https://youtu.be/…"></textarea>
+    </label>
+    <p class="hint">Copied WhatsApp messages keep their date, so each class gets the day it was shared. Plain links get today's date. You can change dates below before publishing.</p>
+    <div class="row"><button type="button" class="btn ghost" id="findBtn">Find links</button><span class="status" id="findStatus"></span></div>
+    <div id="found" class="found" hidden></div>
+    <div class="row" id="publishRow" hidden>
+      <button type="button" class="btn primary" id="publishBtn">Publish to site</button>
+      <span class="status" id="publishSummary"></span>
+    </div>
+    <div id="publishMsg" class="msg" hidden></div>
+    <div id="doneBanner" class="banner" hidden role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- 3. Current list -->
+  <section class="card">
+    <div class="eyebrow">On the site now</div>
+    <h2 id="siteTitle">Classes on the site</h2>
+    <p class="hint" id="siteHint">Connect in step 1 to load the list.</p>
+    <div class="list" id="siteList" hidden></div>
+    <div class="row"><button type="button" class="btn ghost" id="showAllBtn" hidden>Show all</button></div>
+    <div id="removeMsg" class="msg" hidden></div>
+  </section>
+</div>
+
+<script>
+const LS = "bnn33-admin-v1";
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const MON = MONTHS.map(m=>m.slice(0,3));
+const EXTRA_GROUP = "Demo classes & other videos";
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let cfg = { owner:"sanjeevgdb", repo:"bnn-33", branch:"main", token:"" };
+try { Object.assign(cfg, JSON.parse(localStorage.getItem(LS) || "{}")); } catch(_){}
+["owner","repo","branch","token"].forEach(k => { if (cfg[k]) $(k).value = cfg[k]; });
+function saveCfg(){ try { localStorage.setItem(LS, JSON.stringify(cfg)); } catch(_){} }
+
+let site = null;      // { html, sha, classes }
+let found = [];       // candidate new entries
+let showAll = false;
+
+function show(el, kind, html){ el.className = "msg " + kind; el.innerHTML = html; el.hidden = !html; }
+
+/* ---------- GitHub API ---------- */
+const api = (path, opts={}) => fetch(`https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}${path}`, {
+  ...opts,
+  headers: { "Accept":"application/vnd.github+json", "Authorization":`Bearer ${cfg.token}`, "X-GitHub-Api-Version":"2022-11-28", ...(opts.headers||{}) }
+});
+function b64ToText(b64){
+  const bin = atob(b64.replace(/\s/g,""));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return new TextDecoder("utf-8").decode(bytes);
+}
+function textToB64(text){
+  const bytes = new TextEncoder().encode(text);
+  let bin = ""; for (let i=0;i<bytes.length;i+=0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i,i+0x8000));
+  return btoa(bin);
+}
+const DATA_RE = /const CLASSES = (\[[\s\S]*?\]);(\s*\nconst KEY)/;
+function explain(status, body){
+  if (status === 401) return "GitHub did not accept the token. Check you copied the whole token, or create a new one.";
+  if (status === 403) return "The token is not allowed to change this repository. Make sure Contents is set to Read and write, and bnn-33 is selected.";
+  if (status === 404) return "GitHub could not find index.html in that repository. Check the username, repository and branch names.";
+  if (status === 409) return "The site was changed somewhere else at the same moment. Tap the button again.";
+  return `GitHub answered with an error (${status}). ${esc((body && body.message) || "")}`;
+}
+async function loadSite(){
+  const r = await api(`/contents/index.html?ref=${encodeURIComponent(cfg.branch)}`);
+  const body = await r.json().catch(()=>null);
+  if (!r.ok) throw new Error(explain(r.status, body));
+  const html = b64ToText(body.content);
+  const m = html.match(DATA_RE);
+  if (!m) throw new Error("index.html was found, but its class list is not in the expected format. Upload the latest index.html from Claude first.");
+  site = { html, sha: body.sha, classes: JSON.parse(m[1]) };
+  renderSite();
+  return site;
+}
+async function saveSite(classes, message){
+  const html = site.html.replace(DATA_RE, (_, _old, tail) => "const CLASSES = " + JSON.stringify(classes) + ";" + tail);
+  const r = await api(`/contents/index.html`, { method:"PUT", body: JSON.stringify({ message, content: textToB64(html), sha: site.sha, branch: cfg.branch }) });
+  const body = await r.json().catch(()=>null);
+  if (!r.ok) throw new Error(explain(r.status, body));
+  site = { html, sha: body.content.sha, classes };
+  renderSite();
+  return body;
+}
+const siteUrl = () => `https://${cfg.owner.toLowerCase()}.github.io/${cfg.repo}/`;
+
+/* ---------- step 1 ---------- */
+$("connectBtn").onclick = async () => {
+  cfg = { owner:$("owner").value.trim(), repo:$("repo").value.trim(), branch:$("branch").value.trim()||"main", token:$("token").value.trim() };
+  if (!cfg.token){ show($("connectMsg"),"bad","Paste your access token first."); return; }
+  saveCfg();
+  show($("connectMsg"),"info","Connecting…");
+  try { await loadSite(); show($("connectMsg"),"ok",`Connected. The site has ${countMain()} classes.`); markFound(); }
+  catch(e){ show($("connectMsg"),"bad", e.message || "Could not reach GitHub. Check your internet connection."); }
+};
+$("forgetBtn").onclick = () => { cfg.token = ""; $("token").value = ""; saveCfg(); site = null; renderSite(); show($("connectMsg"),"info","Token removed from this phone."); };
+const countMain = () => site ? site.classes.filter(c=>c.d).length : 0;
+
+/* ---------- step 2: find links ---------- */
+const YT_RE = /(?:https?:\/\/)?(?:www\.|m\.)?(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:[^\s#]*?&)?v=|shorts\/|live\/|embed\/))([A-Za-z0-9_-]{11})/g;
+const WA_DATE = /^\s*\[?(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/;
+function isoToday(){ const d = new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function findLinks(text){
+  const out = [], seen = new Set();
+  let curDate = null, curText = "";
+  text.split(/\r?\n/).forEach(line => {
+    const m = line.match(WA_DATE);
+    if (m){ let [_, dd, mm, yy] = m; yy = yy.length===2 ? "20"+yy : yy; curDate = `${yy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`; curText = ""; }
+    const ids = [...line.matchAll(YT_RE)].map(x=>x[1]);
+    const words = line.replace(YT_RE,"").replace(/^\s*\[?[\d\/.,:\s]+(am|pm)?\]?\s*(-\s*)?[^:]*:\s*/i,"").replace(/\?si=\S*/g,"").trim();
+    ids.forEach(id => { if (!seen.has(id)){ seen.add(id); out.push({ v:id, iso: curDate || isoToday(), topic: words.slice(0,60), type:"class", dur:"", on:true }); } });
+    if (!ids.length && words && out.length && out[out.length-1].topic==="" && !m) out[out.length-1].topic = words.slice(0,60); // caption on the next line
+  });
+  return out;
+}
+function markFound(){
+  if (!site) return;
+  const onSite = new Set(site.classes.map(c=>c.v));
+  found.forEach(f => { f.dup = onSite.has(f.v); if (f.dup) f.on = false; });
+  renderFound();
+}
+$("findBtn").onclick = () => {
+  found = findLinks($("paste").value);
+  $("findStatus").textContent = found.length ? `${found.length} link${found.length>1?"s":""} found` : "No YouTube links found";
+  show($("publishMsg"),"",""); $("doneBanner").hidden = true;
+  markFound(); renderFound();
+};
+function renderFound(){
+  const box = $("found");
+  box.hidden = !found.length; $("publishRow").hidden = !found.length;
+  box.innerHTML = found.map((f,i) => `
+    <div class="f${f.dup?" dup":""}">
+      <input type="checkbox" id="on-${i}" data-i="${i}" data-k="on" ${f.on?"checked":""} aria-label="Include this video">
+      <div class="top"><b>${f.type==="class" ? "Class" : "Extra video"}</b>${f.dup?'<span class="tag">Already on the site</span>':""}<a href="https://youtu.be/${f.v}" target="_blank" rel="noopener">youtu.be/${f.v}</a></div>
+      <div class="fields">
+        <label for="type-${i}">Type<select id="type-${i}" data-i="${i}" data-k="type"><option value="class"${f.type==="class"?" selected":""}>Class (gets a Day number)</option><option value="extra"${f.type==="extra"?" selected":""}>Demo / other video</option></select></label>
+        <label for="date-${i}">Class date<input type="date" id="date-${i}" data-i="${i}" data-k="iso" value="${f.iso}"></label>
+        <label for="topic-${i}">Topic (optional)<input id="topic-${i}" data-i="${i}" data-k="topic" value="${esc(f.topic)}" placeholder="e.g. Transit"></label>
+        <label for="dur-${i}">Length (optional)<input id="dur-${i}" data-i="${i}" data-k="dur" value="${esc(f.dur)}" placeholder="2:10:00"></label>
+      </div>
+    </div>`).join("");
+  updateSummary();
+}
+$("found").addEventListener("input", e => {
+  const el = e.target, i = el.dataset.i, k = el.dataset.k; if (i===undefined) return;
+  found[i][k] = el.type==="checkbox" ? el.checked : el.value;
+  if (k==="type") renderFound(); else updateSummary();
+});
+function label(iso, topic){
+  const [y,m,d] = iso.split("-").map(Number);
+  return `${d} ${MON[m-1]} ${y}` + (topic ? ` – ${topic}` : "");
+}
+function plan(){
+  const chosen = found.filter(f=>f.on && /^\d{4}-\d{2}-\d{2}$/.test(f.iso));
+  const classes = chosen.filter(f=>f.type==="class").sort((a,b)=>a.iso.localeCompare(b.iso));
+  const extras = chosen.filter(f=>f.type!=="class");
+  return { classes, extras };
+}
+function updateSummary(){
+  const { classes, extras } = plan();
+  const start = countMain() + 1;
+  let t = "";
+  if (!site) t = "Connect in step 1 before publishing.";
+  else if (!classes.length && !extras.length) t = "Nothing selected.";
+  else t = [classes.length ? (classes.length===1 ? `Adds Day ${start}` : `Adds Day ${start}–${start+classes.length-1}`) : "", extras.length ? `${extras.length} extra video${extras.length>1?"s":""}` : ""].filter(Boolean).join(" + ");
+  $("publishSummary").textContent = t;
+  $("publishBtn").disabled = !site || (!classes.length && !extras.length);
+}
+
+
+let liveTimer = null;
+function showDone(added, ids){
+  const b = $("doneBanner");
+  b.innerHTML = `<div class="tick" aria-hidden="true">&#10003;</div>
+    <div><h3>Uploaded successfully</h3>
+      <p>Added to the site: <b>${esc(added.join(", "))}</b></p>
+      <p class="live" id="liveLine">Waiting for the site to update (usually about 1 minute)…</p>
+      <p><a href="${siteUrl()}" target="_blank" rel="noopener">Open the site</a></p></div>`;
+  b.hidden = false;
+  b.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"center" });
+  clearInterval(liveTimer);
+  const started = Date.now();
+  const check = async () => {
+    const line = $("liveLine"); if (!line) { clearInterval(liveTimer); return; }
+    try {
+      const r = await fetch(siteUrl() + "index.html?check=" + Date.now(), { cache:"no-store" });
+      const txt = r.ok ? await r.text() : "";
+      if (ids.every(id => txt.includes(id))) { line.textContent = "\u2713 Live now. Students will see it when they open or refresh the site."; clearInterval(liveTimer); return; }
+    } catch(_) {}
+    if (Date.now() - started > 5*60*1000) { line.textContent = "Saved on GitHub. The site is taking longer than usual to update; check it again in a few minutes."; clearInterval(liveTimer); }
+  };
+  liveTimer = setInterval(check, 10000); setTimeout(check, 4000);
+}
+
+/* ---------- publish ---------- */
+$("publishBtn").onclick = async () => {
+  const btn = $("publishBtn"); btn.disabled = true;
+  show($("publishMsg"),"info","Publishing…");
+  try {
+    await loadSite();                                  // always start from the latest version
+    const { classes, extras } = plan();
+    const onSite = new Set(site.classes.map(c=>c.v));
+    const list = site.classes.slice();
+    let main = list.filter(c=>c.d), rest = list.filter(c=>!c.d);
+    let n = main.length ? Math.max(...main.map(c=>c.d)) : 0;
+    const added = [], newIds = [];
+    classes.forEach(f => { if (onSite.has(f.v)) return; n++; const [y,m] = f.iso.split("-").map(Number);
+      main.push({ d:n, date:label(f.iso, f.topic.trim()), dur:f.dur.trim(), v:f.v, g:`${MONTHS[m-1]} ${y}` }); added.push(`Day ${n} (${label(f.iso, f.topic.trim())})`); newIds.push(f.v); });
+    extras.forEach(f => { if (onSite.has(f.v)) return;
+      rest.push({ d:0, date:label(f.iso, f.topic.trim()), dur:f.dur.trim(), v:f.v, g:EXTRA_GROUP }); added.push(`Extra video (${label(f.iso, f.topic.trim())})`); newIds.push(f.v); });
+    if (!added.length){ show($("publishMsg"),"info","Those videos are already on the site. Nothing to publish."); return; }
+    await saveSite(main.concat(rest), `Add ${added.join(", ")}`);
+    show($("publishMsg"),"","");
+    showDone(added, newIds);
+    found = []; $("paste").value = ""; $("findStatus").textContent = ""; renderFound();
+  } catch(e){ show($("publishMsg"),"bad", e.message || "Could not reach GitHub. Check your internet connection."); }
+  finally { updateSummary(); }
+};
+
+/* ---------- step 3: list + remove ---------- */
+function renderSite(){
+  const list = $("siteList"), hint = $("siteHint");
+  if (!site){ list.hidden = true; $("showAllBtn").hidden = true; hint.hidden = false; $("siteTitle").textContent = "Classes on the site"; return; }
+  hint.hidden = true; list.hidden = false;
+  $("siteTitle").textContent = `${countMain()} classes on the site`;
+  const main = site.classes.filter(c=>c.d), rest = site.classes.filter(c=>!c.d);
+  const rows = showAll ? main.concat(rest) : main.slice(-8);
+  $("showAllBtn").hidden = false; $("showAllBtn").textContent = showAll ? "Show latest only" : `Show all ${site.classes.length}`;
+  list.innerHTML = rows.slice().reverse().map(c => `
+    <div class="li">
+      <div class="n">${c.d ? `<small>DAY</small>${c.d}` : `<small>EXTRA</small>&middot;`}</div>
+      <div class="t"><div>${esc(c.date)}</div><div>youtu.be/${c.v}</div></div>
+      <button type="button" data-rm="${c.v}">Remove</button>
+    </div>`).join("");
+}
+$("showAllBtn").onclick = () => { showAll = !showAll; renderSite(); };
+let armed = null, armTimer = null;
+$("siteList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-rm]"); if (!b) return;
+  const v = b.dataset.rm;
+  if (armed !== v){ document.querySelectorAll("[data-rm]").forEach(x=>{x.classList.remove("arm"); x.textContent="Remove";});
+    armed = v; b.classList.add("arm"); b.textContent = "Tap again to remove"; clearTimeout(armTimer); armTimer = setTimeout(()=>{ armed=null; renderSite(); }, 4000); return; }
+  armed = null; b.disabled = true; b.textContent = "Removing…";
+  try {
+    await loadSite();
+    const gone = site.classes.find(c=>c.v===v);
+    if (!gone){ show($("removeMsg"),"info","That video is already gone."); return; }
+    let n = 0;
+    const next = site.classes.filter(c=>c.v!==v).map(c => c.d ? { ...c, d: ++n } : c); // renumber days
+    await saveSite(next, `Remove ${gone.d ? "Day " + gone.d : "extra video"} (${v})`);
+    show($("removeMsg"),"ok",`Removed ${esc(gone.d ? "Day " + gone.d : "the extra video")}. Later days were renumbered. Students' progress is not affected.`);
+  } catch(err){ show($("removeMsg"),"bad", err.message || "Could not reach GitHub."); renderSite(); }
+});
+
+/* auto-connect if a token is already saved */
+if (cfg.token){ loadSite().then(()=>show($("connectMsg"),"ok",`Connected. The site has ${countMain()} classes.`)).catch(e=>show($("connectMsg"),"bad",e.message)); }
+renderFound(); renderSite();
+</script>
+</body>
+</html>
